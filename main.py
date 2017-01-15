@@ -4,8 +4,7 @@ from PPlay.sound import *
 
 import time
 import random
-from tankEnemy import enemy_tank
-from sho import shot
+from tank import tank
 from snake import snake
 
 
@@ -180,126 +179,6 @@ def running(tempoAnterior,score,GAME_SPEED,lastClick,delta):
 
 
 
-#função jogo de tank
-def tank( score,lastClick,direcao, tank_user):
-    global MODE
-    posi_x = tank_user.x
-    posi_y = tank_user.y
-    currentTime = window.last_time
-
-
-    if (currentTime - lastClick > delay+20):
-        if keyboard.key_pressed("RIGHT"):
-            direcao = 1
-            tank_user = Sprite(tank_images[1], 1)
-            tank_user.set_position(posi_x+velocidade,posi_y)
-
-        elif keyboard.key_pressed("LEFT"):
-            direcao = 3
-            tank_user = Sprite(tank_images[3], 1)
-            tank_user.set_position(posi_x-velocidade, posi_y)
-
-        elif keyboard.key_pressed("UP"):
-            direcao = 0
-            tank_user = Sprite(tank_images[0], 1)
-            tank_user.set_position(posi_x, posi_y-velocidade)
-
-        elif keyboard.key_pressed("DOWN"):
-            direcao = 2
-            tank_user = Sprite(tank_images[2], 1)
-            tank_user.set_position(posi_x, posi_y+velocidade)
-
-        elif keyboard.key_pressed("SPACE"):
-            x = tank_user.x + tank_user.width / 2
-            y = tank_user.y + tank_user.height / 2
-            shots.append(shot("Tank/shot.png",direcao,x,y))
-            audio_shot.play()
-
-        if(tank_user.x<0):
-            tank_user.x = 0
-        elif(tank_user.x>527-tank_user.height):
-            tank_user.x = 527-tank_user.height
-        if (tank_user.y < 0):
-            tank_user.y = 0
-        elif (tank_user.y > 527-tank_user.height):
-            tank_user.y = 527-tank_user.height
-
-        lastClick = currentTime
-
-    tank_user.draw()
-
-    if len(enemies) < max_enemies:
-        enemies.append(enemy_tank())
-
-    for enemy in enemies:
-        enemy.move()
-
-    for sh in shots:
-        sh.atualizar()
-        x,y = sh.posicao()
-        if(x<0 or x>527 or y<0 or y>527):
-            shots.remove(sh)
-
-    for sh in shots:
-        for en in enemies:
-            if sh.spr().collided(en.spr()):
-                shots.remove(sh)
-                enemies.remove(en)
-                score = score + 20
-
-    for sh in shots_enemy:
-        sh.atualizar()
-        x,y = sh.posicao()
-        if(x<0 or x>527 or y<0 or y>527):
-            shots_enemy.remove(sh)
-
-    for sh in shots_enemy:
-        if sh.spr().collided(tank_user):
-            MODE = 9
-            audio_end.play()
-        else:
-            for sh2 in shots:
-                if sh.spr().collided(sh2.spr()):
-                    shots.remove(sh2)
-                    shots_enemy.remove(sh)
-                    score = score + 5
-
-    if MODE != 9:
-        for en in enemies:
-            if tank_user.collided(en.spr()):
-                MODE = 9
-                audio_end.play()
-            else:
-                for en2 in enemies:
-                     if en2 != en:
-                         if en.spr().collided(en2.spr()):
-                             if(en.direcao < 2):
-                                 en.direcao = en.direcao + 2
-                             else:
-                                 en.direcao = en.direcao - 2
-
-                             en.move()
-
-                if random.randint(0,50) > 48:
-                    x = en.spr().x + en.spr().width / 2
-                    y = en.spr().y + en.spr().height / 2
-                    shots_enemy.append(shot("Tank/shot2.png", en.direcao, x, y))
-
-    return score, lastClick,direcao, tank_user
-
-#configurações iniciais do jogo tank
-def startTank():
-    tank_user = Sprite(tank_images[0], 1)
-    tank_user.set_total_duration(0)
-    tank_user.set_position(100, 300)
-    shots = []
-    enemies = []
-    shots_enemy = []
-    max_enemies = 4
-    velocidade = 10
-    direcao = 0
-    return tank_user,shots,enemies,shots_enemy,max_enemies,velocidade,direcao
-
 #tela de game over
 def fim(window, last,rgb):
     window.set_background_color([0,0,0])
@@ -339,9 +218,8 @@ while True:
             matrizMundo, car_user, car_enemies, tempoAnterior,score,delta = startRunning()
         elif(MODE == 3):
             # tank
-            tank_images = ['Tank/tank.png', 'Tank/tank_1.png', 'Tank/tank_2.png',
-                           'Tank/tank_3.png']
-            tank_user, shots, enemies, shots_enemy, max_enemies, velocidade, direcao = startTank()
+            game.append(tank(window.last_time))    
+
 
     #snake
     elif(MODE == 1):
@@ -357,14 +235,13 @@ while True:
         tempoAnterior,score,GAME_SPEED,lastClick = running(tempoAnterior,score,GAME_SPEED,lastClick,delta)
     #tank
     elif(MODE == 3):
-        clock.tick(GAME_SPEED * 40)
+        clock.tick(GAME_SPEED * 20)
         rgb[0] = 255
         rgb[1] = 255
 
-        if time.time() - tempo >=30:
-            max_enemies = max_enemies + 1
-            tempo = time.time()
-        score,lastClick,direcao, tank_user = tank(score,lastClick,direcao, tank_user)
+        score,MODE = game[0].game(score,MODE,window,keyboard)
+        
+        
     #game over
     elif(MODE == 9):
         MODE,window, lastClick,rgb = fim(window, lastClick,rgb)

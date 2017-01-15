@@ -5,6 +5,7 @@ import random
 class enemy_tank():
     tank_images = ['Tank/tank2.png', 'Tank/tank2_1.png', 'Tank/tank2_2.png', 'Tank/tank2_3.png']
     velocidade = 1
+    moves = 0
 
     #construtor
     def __init__(self):
@@ -59,19 +60,22 @@ class enemy_tank():
     def move(self, deltaX=0, deltaY=0):
         x = self.sprite.x+deltaX
         y = self.sprite.y+deltaY
-
-        if random.randint(0,20) > 18:
+        random.seed()
+        if random.randint(0,30) > 28 and self.moves >=3:
             self.direcao = random.randint(0,3)
             self.mudarDirecao(self.direcao)
+            self.moves = 0
+        else:    
+            if self.direcao == 0:
+                self.sprite.set_position(x, y - self.velocidade)
+            elif self.direcao == 1:
+                self.sprite.set_position(x + self.velocidade, y)
+            elif self.direcao == 2:
+                self.sprite.set_position(x, y + self.velocidade)
+            else:
+                self.sprite.set_position(x - self.velocidade, y)
 
-        if self.direcao == 0:
-            self.sprite.set_position(x, y - self.velocidade)
-        elif self.direcao == 1:
-            self.sprite.set_position(x + self.velocidade, y)
-        elif self.direcao == 2:
-            self.sprite.set_position(x, y + self.velocidade)
-        else:
-            self.sprite.set_position(x - self.velocidade, y)
+            self.moves = self.moves + 1    
 
         if (self.ajustar()):
             mudou  = False
@@ -83,14 +87,14 @@ class enemy_tank():
                     self.mudarDirecao(x)
 
     #função para auxiliar a mudança de direção
-    def mudarDirecao(self,dir):
+    def mudarDirecao(self,dire):
         pos_x = self.sprite.x
         pos_y = self.sprite.y
-        self.sprite = Sprite(self.tank_images[dir], 1)
+        self.sprite = Sprite(self.tank_images[dire], 1)
         self.sprite.set_total_duration(0)
         self.sprite.set_position(pos_x, pos_y)
         self.sprite.draw()
 
-    #retorna o splite do tanl
+    #retorna o sprite do tanl
     def spr(self):
         return self.sprite
