@@ -6,6 +6,7 @@ import time
 import random
 from tankEnemy import enemy_tank
 from sho import shot
+from snake import snake
 
 
 #game config
@@ -39,6 +40,8 @@ select.set_position(100,190)
 
 score = 0
 
+
+game = []
 
 #tela de inicialização
 def start(MODE,select, tempo):
@@ -77,99 +80,6 @@ def start(MODE,select, tempo):
 
     return MODE,tempo
 
-#jogo snake
-def snake(pixel,score):
-    global MODE
-
-    #para dar a volta na tela
-    if pixel['snake'][0].x <= 10 and pixel['direcao'] == 2:
-        pixel['snake'][0].set_position(500,pixel['snake'][0].y)
-    elif pixel['snake'][0].x >= 500 and pixel['direcao'] == 1:
-        pixel['snake'][0].set_position(10,pixel['snake'][0].y)
-    elif pixel['snake'][0].y <= 10 and pixel['direcao'] == 3:
-        pixel['snake'][0].set_position(pixel['snake'][0].x,500)
-    elif pixel['snake'][0].y >= 500 and pixel['direcao'] == 4:
-        pixel['snake'][0].set_position(pixel['snake'][0].x,10)
-
-
-    #configura a direção da snake e faz as movimentações
-    x=0
-    y=0
-    currentTime = window.last_time
-    if(currentTime - pixel['ultimoMov'] > delay):
-        pixel['ultimoMov'] = currentTime
-        if keyboard.key_pressed("RIGHT") and pixel['direcao'] != 2:
-            pixel['direcao'] = 1
-        elif  keyboard.key_pressed("LEFT") and pixel['direcao'] != 1:
-            pixel['direcao'] = 2
-        elif  keyboard.key_pressed("UP") and pixel['direcao'] != 4:
-            pixel['direcao'] = 3
-        elif keyboard.key_pressed("DOWN") and pixel['direcao'] != 3:
-            pixel['direcao'] = 4
-
-    if pixel['direcao'] == 1:
-        x = 10
-    if pixel['direcao'] == 2:
-        x = -10
-    if pixel['direcao'] == 3:
-        y = -10
-    if pixel['direcao'] == 4:
-        y = 10
-
-    posi_x = pixel["snake"][0].x
-    posi_y = pixel["snake"][0].y
-
-    pixel["snake"][0].set_position(posi_x+x, posi_y+y)
-    pixel["snake"][0].draw()
-    i=0
-    for pix in pixel["snake"]:
-        if i!=0:
-            pos_x_aux=pix.x
-            pos_y_aux = pix.y
-            pix.set_position(posi_x, posi_y)
-            posi_x = pos_x_aux
-            posi_y = pos_y_aux
-            pix.draw()
-        i=1
-
-    if(pixel['snake'][0].collided(red_pix)):
-        red_pix.set_position(random.randint(0,512),random.randint(0,512))
-        snake_pixel = Sprite("Snake/snake.png", 1)
-        snake_pixel.set_total_duration(0)
-        snake_pixel.set_position(999, 999)
-        pixel['pontos'] = pixel['pontos']+50
-        pixel['snake'].append(snake_pixel)
-        print(pixel['pontos'])
-        score = score + 50
-        audio_shot.play()
-
-    for i in range(len(pixel['snake'])):
-        if (len(pixel['snake']) > i+4):
-            j = i + 4
-            while j < (len(pixel['snake'])):
-                if pixel['snake'][i].collided(pixel['snake'][j]):
-                    MODE = 9
-                    audio_end.play()
-                j = j +1
-
-    red_pix.draw()
-    return score
-
-#configurções iniciais do snake
-def startSnake():
-    snake_x = [290, 290, 290, 290, 290]
-    snake_y = [290, 280, 270, 260, 250]
-    red_pix.set_total_duration(0)
-    red_pix.set_position(random.randint(0, 512), random.randint(0, 512))
-    pixel = {'snake': [], 'direcao': 1, 'ultimoMov': 0, 'pontos': 0}
-    i = 0
-    for snk in snake_x:
-        snake_pixel = Sprite("Snake/snake.png", 1)
-        snake_pixel.set_total_duration(0)
-        snake_pixel.set_position(snake_x[i], snake_y[i])
-        pixel['snake'].append(snake_pixel)
-        i = i + 1
-    return pixel
 
 #configurações iniciais de running
 def startRunning():
@@ -414,10 +324,10 @@ while True:
     if(MODE == 0):
         MODE,tempo = start(MODE,select,tempo)
         score = 0
+        GAME_SPEED = 1
         if(MODE == 1):
-            # Snake
-            red_pix = Sprite('Snake/pixel.png', 1)
-            pixel = startSnake()
+            game.append(snake())
+
         elif(MODE == 2):
             #running
             wall = Sprite("Running/pixel.png")
@@ -438,7 +348,7 @@ while True:
         clock.tick(GAME_SPEED*10)
         rgb[0] = 255
         rgb[1] = 255
-        score = snake(pixel,score)
+        score,MODE = game[0].game(delay,score,MODE,window,keyboard)
     #running
     elif(MODE == 2):
         clock.tick(GAME_SPEED * 10)
@@ -458,5 +368,7 @@ while True:
     #game over
     elif(MODE == 9):
         MODE,window, lastClick,rgb = fim(window, lastClick,rgb)
+        game = []
+        
 
     window.update()
