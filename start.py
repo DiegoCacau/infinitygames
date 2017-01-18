@@ -1,5 +1,17 @@
+from PPlay.sprite import *
+
+
 class start():
-	def game(self):
+	
+	def __init__(self,lastClick):
+		self.lastClick = lastClick
+		#first page menu
+		self.select = Sprite("gun.png",1)
+		self.select.set_total_duration(1000)
+		self.select.set_position(100,190)
+
+
+	def game(self, window,MODE,tempo, keyboard,delay):
 		window.draw_text("Selecione o Jogo", 130, 60, 40, (255, 255, 0), "Arial", True, True)
 		window.draw_text("Snake", 170, 180, 40, (0, 255, 0), "Arial", True, True)
 		window.draw_text("Runnning", 170, 260, 40, (255, 0, 0), "Arial", True, True)
@@ -7,27 +19,29 @@ class start():
 		window.draw_text("Aperte ENTER", 160, 430, 25, (255, 255, 0), "Arial", True, True)
 
 		currentTime = window.last_time
-		if currentTime - lastClick > delay+70:
+		if currentTime - self.lastClick > delay+70:
 			if (keyboard.key_pressed("ENTER")):
-				if (select.y <= 210):
+				if (self.select.y <= 210):
 					MODE = 1
-				elif (select.y <= 300):
+				elif (self.select.y <= 300):
 					MODE = 2
 				else:
 					MODE = 3
 				tempo = time.time()
-				lastClick = currentTime
+				self.lastClick = currentTime
 
 
 			elif (keyboard.key_pressed("UP")):
-				if select.y > 200:
-					select.y =  select.y - 80
-				lastClick = currentTime
+				if self.select.y > 200:
+					self.select.y =  self.select.y - 80
+				self.lastClick = currentTime
 			elif (keyboard.key_pressed("DOWN")):
-				if select.y < 300:
-					select.y = select.y + 80
-				lastClick = currentTime
+				if self.select.y < 300:
+					self.select.y = self.select.y + 80
+				self.lastClick = currentTime
 
 
-		select.update()
-		select.draw()	
+		self.select.update()
+		self.select.draw()	
+
+		return MODE, tempo

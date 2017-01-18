@@ -1,6 +1,4 @@
 from PPlay.window import *
-from PPlay.sprite import *
-from PPlay.sound import *
 
 import time
 import random
@@ -8,6 +6,7 @@ import random
 from tank import tank
 from snake import snake
 from running import running
+from start import start
 
 
 #game config
@@ -22,66 +21,14 @@ delay = 50
 GAME_SPEED = 1
 tempo = 0
 
-#audio
-audio_shot = Sound("Sounds/shot.ogg")
-audio_shot.set_volume(100)
-audio_end = Sound("Sounds/end.ogg")
-audio_end.set_volume(100)
-
-
 #keyboard
 keyboard = Window.get_keyboard()
+
 lastClick=0
-
-#first page menu
-select= Sprite("gun.png",1)
-select.set_total_duration(1000)
-select.set_position(100,190)
-
-
 score = 0
 
 
-game = []
-
-#tela de inicialização
-def start(MODE,select, tempo):
-    global lastClick
-    window.draw_text("Selecione o Jogo", 130, 60, 40, (255, 255, 0), "Arial", True, True)
-    window.draw_text("Snake", 170, 180, 40, (0, 255, 0), "Arial", True, True)
-    window.draw_text("Runnning", 170, 260, 40, (255, 0, 0), "Arial", True, True)
-    window.draw_text("Tank", 170, 340, 40, (200, 120, 255), "Arial", True, True)
-    window.draw_text("Aperte ENTER", 160, 430, 25, (255, 255, 0), "Arial", True, True)
-
-    currentTime = window.last_time
-    if currentTime - lastClick > delay+70:
-        if (keyboard.key_pressed("ENTER")):
-            if (select.y <= 210):
-                MODE = 1
-            elif (select.y <= 300):
-                MODE = 2
-            else:
-                MODE = 3
-            tempo = time.time()
-            lastClick = currentTime
-
-
-        elif (keyboard.key_pressed("UP")):
-            if select.y > 200:
-                select.y =  select.y - 80
-            lastClick = currentTime
-        elif (keyboard.key_pressed("DOWN")):
-            if select.y < 300:
-                select.y = select.y + 80
-            lastClick = currentTime
-
-
-    select.update()
-    select.draw()
-
-    return MODE,tempo
-
-
+game = [start(lastClick)]
 
 #tela de game over
 def fim(window, last,rgb):
@@ -105,16 +52,20 @@ while True:
 
     #menu inicial
     if(MODE == 0):
-        MODE,tempo = start(MODE,select,tempo)
+        #MODE,tempo = start(MODE,select,tempo)
+        MODE,tempo = game[0].game(window,MODE,tempo, keyboard,delay)
         score = 0
         GAME_SPEED = 1
         if(MODE == 1):
+            game = []
             game.append(snake())
         elif(MODE == 2):
             #running
+            game = []
             game.append(running(window))
         elif(MODE == 3):
             # tank
+            game = []
             game.append(tank(window.last_time))    
 
 
@@ -143,6 +94,8 @@ while True:
     elif(MODE == 9):
         MODE,window, lastClick,rgb = fim(window, lastClick,rgb)
         game = []
+        if MODE == 0:
+            game.append(start(lastClick))
         
 
     window.update()
